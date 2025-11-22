@@ -319,8 +319,12 @@ const SurveyApp = () => {
         <ProgressBar currentStep={currentSlide} totalSteps={totalSteps} />
       )}
 
-      <div className="w-full max-w-lg mb-6 flex justify-between items-center">
-        <div className="text-xl font-bold text-[#9F6449] tracking-tight">Krest Dental</div>
+      <div className="w-full max-w-lg mb-6 flex justify-between items-center h-8">
+        {currentSlide > 0 ? (
+          <div className="text-xl font-bold text-[#9F6449] tracking-tight">Krest Dental</div>
+        ) : (
+          <div></div>
+        )}
         {currentSlide > 0 && currentSlide < 7 && (
            <button onClick={handlePrev} className="text-gray-400 hover:text-gray-600 text-sm font-medium">
              Back
