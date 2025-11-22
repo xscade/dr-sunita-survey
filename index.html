@@ -32,6 +32,24 @@
         transform: translateX(-20px);
         transition: opacity 300ms, transform 300ms;
       }
+
+      /* Custom Scrollbar Styles for Mobile Visibility */
+      .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: #9F6449 rgba(159, 100, 73, 0.1);
+        -webkit-overflow-scrolling: touch;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(159, 100, 73, 0.1);
+        border-radius: 8px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #9F6449;
+        border-radius: 8px;
+      }
     </style>
   <script type="importmap">
 {
@@ -49,7 +67,6 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
 </head>
   <body class="bg-[#F5EAE6] text-slate-900">
     <div id="root"></div>

@@ -131,7 +131,7 @@ const SourceSlide = ({ data, updateData, onNext }: any) => {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-slate-900">How did you hear about us?</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto pr-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
         {sources.map((s) => (
           <OptionCard 
             key={s}
