@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ProgressBar } from './components/ProgressBar';
 import { Button } from './components/Button';
 import { OptionCard } from './components/OptionCard';
@@ -8,7 +8,8 @@ import {
   VisitType, 
   ReasonForVisit, 
   LeadSource, 
-  AdType 
+  AdType,
+  SlideProps
 } from './types';
 import { generateWelcomeMessage } from './services/geminiService';
 
@@ -29,7 +30,7 @@ const WelcomeSlide = ({ onNext }: { onNext: () => void }) => (
 );
 
 // Slide 2: Visit Type
-const VisitTypeSlide = ({ data, updateData, onNext }: any) => {
+const VisitTypeSlide = ({ data, updateData, onNext }: SlideProps) => {
   const options = [
     { label: "Yes, it's my first time", value: VisitType.FirstTime },
     { label: "No, I've visited before", value: VisitType.Returning },
@@ -56,7 +57,7 @@ const VisitTypeSlide = ({ data, updateData, onNext }: any) => {
 };
 
 // Slide 3: Name
-const NameSlide = ({ data, updateData, onNext }: any) => (
+const NameSlide = ({ data, updateData, onNext }: SlideProps) => (
   <div className="space-y-6">
     <h2 className="text-2xl font-bold text-slate-900">What is your full name?</h2>
     <input
@@ -78,7 +79,7 @@ const NameSlide = ({ data, updateData, onNext }: any) => (
 );
 
 // Slide 4: Mobile
-const MobileSlide = ({ data, updateData, onNext }: any) => (
+const MobileSlide = ({ data, updateData, onNext }: SlideProps) => (
   <div className="space-y-6">
     <h2 className="text-2xl font-bold text-slate-900">Your mobile number?</h2>
     <input
@@ -103,7 +104,7 @@ const MobileSlide = ({ data, updateData, onNext }: any) => (
 );
 
 // Slide 5: Reason
-const ReasonSlide = ({ data, updateData, onNext }: any) => {
+const ReasonSlide = ({ data, updateData, onNext }: SlideProps) => {
   const reasons = Object.values(ReasonForVisit);
   return (
     <div className="space-y-6">
@@ -126,11 +127,12 @@ const ReasonSlide = ({ data, updateData, onNext }: any) => {
 };
 
 // Slide 6: Lead Source
-const SourceSlide = ({ data, updateData, onNext }: any) => {
+const SourceSlide = ({ data, updateData, onNext }: SlideProps) => {
   const sources = Object.values(LeadSource);
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-slate-900">How did you hear about us?</h2>
+      {/* Added custom-scrollbar class and padding-right for better scroll visibility */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
         {sources.map((s) => (
           <OptionCard 
@@ -165,7 +167,7 @@ const SourceSlide = ({ data, updateData, onNext }: any) => {
 };
 
 // Slide 7: Ad Attribution
-const AttributionSlide = ({ data, updateData, onNext }: any) => {
+const AttributionSlide = ({ data, updateData, onNext }: SlideProps) => {
   const ads = Object.values(AdType);
   return (
     <div className="space-y-6">
@@ -334,12 +336,12 @@ const SurveyApp = () => {
 
       <div className="w-full max-w-lg bg-white rounded-3xl shadow-xl overflow-hidden p-6 sm:p-10 min-h-[400px] flex flex-col justify-center relative">
         {currentSlide === 0 && <WelcomeSlide onNext={handleNext} />}
-        {currentSlide === 1 && <VisitTypeSlide data={formData} updateData={updateData} onNext={handleNext} />}
-        {currentSlide === 2 && <NameSlide data={formData} updateData={updateData} onNext={handleNext} />}
-        {currentSlide === 3 && <MobileSlide data={formData} updateData={updateData} onNext={handleNext} />}
-        {currentSlide === 4 && <ReasonSlide data={formData} updateData={updateData} onNext={handleNext} />}
-        {currentSlide === 5 && <SourceSlide data={formData} updateData={updateData} onNext={handleNext} />}
-        {currentSlide === 6 && <AttributionSlide data={formData} updateData={updateData} onNext={handleNext} />}
+        {currentSlide === 1 && <VisitTypeSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} />}
+        {currentSlide === 2 && <NameSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} />}
+        {currentSlide === 3 && <MobileSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} />}
+        {currentSlide === 4 && <ReasonSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} />}
+        {currentSlide === 5 && <SourceSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} />}
+        {currentSlide === 6 && <AttributionSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} />}
         {currentSlide === 7 && <ThankYouSlide data={formData} />}
       </div>
 
