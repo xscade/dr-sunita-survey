@@ -213,7 +213,7 @@ const GoogleDetailSlide = ({ updateData, onNext }: { updateData: (fields: Partia
             setTimeout(onNext, 250);
           }}
         >
-          <div className="w-full aspect-[4/5] bg-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative border-2 border-transparent hover:border-[#9F6449]/30">
+          <div className="w-full aspect-[9/16] bg-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative border-2 border-transparent hover:border-[#9F6449]/30">
             <img 
               src="https://storage.googleapis.com/client-web-files/krest%20dental%20ai/google%20ads.PNG" 
               alt="Google Ads" 
@@ -234,7 +234,7 @@ const GoogleDetailSlide = ({ updateData, onNext }: { updateData: (fields: Partia
             setTimeout(onNext, 250);
           }}
         >
-          <div className="w-full aspect-[4/5] bg-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative border-2 border-transparent hover:border-[#9F6449]/30">
+          <div className="w-full aspect-[9/16] bg-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative border-2 border-transparent hover:border-[#9F6449]/30">
             <video 
               src="https://storage.googleapis.com/client-web-files/krest%20dental%20ai/practo.mov"
               autoPlay 
