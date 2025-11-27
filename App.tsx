@@ -198,6 +198,69 @@ const AttributionSlide = ({ data, updateData, onNext }: SlideProps) => {
   );
 };
 
+// Slide: Google Detail (Intermediate)
+const GoogleDetailSlide = ({ updateData, onNext }: { updateData: (fields: Partial<PatientFormData>) => void, onNext: () => void }) => {
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-slate-900">How did you find us on Google?</h2>
+      <p className="text-gray-500 text-sm">Please select what you clicked on</p>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Google Ads Option */}
+        <div 
+          className="group cursor-pointer"
+          onClick={() => {
+            updateData({ leadSource: 'Google Ads' });
+            setTimeout(onNext, 250);
+          }}
+        >
+          <div className="bg-white border-2 border-gray-200 rounded-xl overflow-hidden hover:border-[#9F6449] transition-all duration-300 h-full flex flex-col">
+            <div className="h-48 bg-gray-100 flex items-center justify-center overflow-hidden relative">
+              <img 
+                src="https://storage.googleapis.com/client-web-files/krest%20dental%20ai/google%20ads.PNG" 
+                alt="Google Ads" 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
+            </div>
+            <div className="p-4 text-center border-t border-gray-100">
+              <h3 className="font-semibold text-lg text-slate-900 group-hover:text-[#9F6449]">Sponsored Ad</h3>
+              <p className="text-sm text-gray-500 mt-1">Labeled as "Sponsored" or "Ad"</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Practo Option */}
+        <div 
+          className="group cursor-pointer"
+          onClick={() => {
+            updateData({ leadSource: 'Practo' });
+            setTimeout(onNext, 250);
+          }}
+        >
+          <div className="bg-white border-2 border-gray-200 rounded-xl overflow-hidden hover:border-[#9F6449] transition-all duration-300 h-full flex flex-col">
+            <div className="h-48 bg-gray-100 relative">
+              <video 
+                src="https://storage.googleapis.com/client-web-files/krest%20dental%20ai/practo.mov"
+                autoPlay 
+                loop 
+                muted 
+                playsInline 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
+            </div>
+            <div className="p-4 text-center border-t border-gray-100">
+              <h3 className="font-semibold text-lg text-slate-900 group-hover:text-[#9F6449]">Practo Listing</h3>
+              <p className="text-sm text-gray-500 mt-1">Found us via Practo on Google</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Slide 8: Thank You
 const ThankYouSlide = ({ data }: { data: PatientFormData }) => {
   const [message, setMessage] = useState("Thank you! Our team will assist you shortly.");
@@ -318,6 +381,20 @@ const SurveyApp = () => {
   
   const handleNext = () => {
     if (currentSlide === 5) {
+      // Special handling for Google Search -> Show Detailed Source Slide (Index 10)
+      if (formData.leadSource === 'Google Search') {
+        setCurrentSlide(10);
+        return;
+      }
+
+      if (isAdSource) {
+        setCurrentSlide(6);
+      } else {
+        setCurrentSlide(7);
+      }
+    } else if (currentSlide === 10) {
+      // From Google Detail Slide (Index 10)
+      // Source has been updated to either 'Google Ads' or 'Practo'
       if (isAdSource) {
         setCurrentSlide(6);
       } else {
@@ -332,8 +409,20 @@ const SurveyApp = () => {
     if (currentSlide === 0) return;
     
     if (currentSlide === 7) {
-      setCurrentSlide(isAdSource ? 6 : 5);
+      if (isAdSource) {
+        setCurrentSlide(6);
+      } else {
+        // If we are skipping attribution (e.g. Practo), go back to Source list (5) 
+        // or Google Detail (10)?
+        // Going back to 5 allows re-selection.
+        setCurrentSlide(5);
+      }
     } else if (currentSlide === 6) {
+      // If we are on Attribution, going back usually goes to Source (5).
+      // If they came via Google Detail (10), we could go back there, 
+      // but going to 5 is safer/simpler flow reset.
+      setCurrentSlide(5);
+    } else if (currentSlide === 10) {
       setCurrentSlide(5);
     } else {
       setCurrentSlide(prev => prev - 1);
@@ -373,6 +462,7 @@ const SurveyApp = () => {
         {/* Pass dynamic options to slides */}
         {currentSlide === 4 && <ReasonSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} options={options.reasons} />}
         {currentSlide === 5 && <SourceSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} options={options.sources} />}
+        {currentSlide === 10 && <GoogleDetailSlide updateData={updateData} onNext={handleNext} />}
         {currentSlide === 6 && <AttributionSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} />}
         {currentSlide === 7 && <ThankYouSlide data={formData} />}
       </div>
