@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ProgressBar } from './components/ProgressBar';
 import { Button } from './components/Button';
 import { OptionCard } from './components/OptionCard';
