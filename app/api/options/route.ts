@@ -4,15 +4,30 @@ import { DEFAULT_REASONS, DEFAULT_SOURCES, ReasonCategory } from '@/types';
 
 export async function GET() {
   try {
-    const client = await clientPromise;
+    // Connect to MongoDB
+    let client;
+    try {
+      client = await clientPromise;
+    } catch (connectionError: any) {
+      console.error("MongoDB Connection Error:", connectionError);
+      return NextResponse.json(
+        { error: 'Database connection failed', details: connectionError.message },
+        { status: 500 }
+      );
+    }
+
     const db = client.db('dr_sunita_db');
     const collection = db.collection('form_options');
     
+    // Fetch from database - STRICTLY from database, no defaults
     const options = await collection.findOne({ key: 'global_options' });
+    
     if (!options) {
+      console.log("⚠️ No options found in database - returning empty structure");
+      // Return empty structure, NOT defaults
       return NextResponse.json({
-        reasons: DEFAULT_REASONS,
-        sources: DEFAULT_SOURCES
+        reasons: [],
+        sources: []
       });
     }
     
@@ -30,11 +45,17 @@ export async function GET() {
     
     // Remove the key field from response
     const { key, ...responseData } = options;
+    console.log(`✅ Fetched options from database: ${responseData.reasons?.length || 0} categories, ${responseData.sources?.length || 0} sources`);
     return NextResponse.json(responseData);
   } catch (e: any) {
     console.error("Options API Error:", e);
+    console.error("Error details:", {
+      message: e.message,
+      stack: e.stack,
+      name: e.name
+    });
     return NextResponse.json(
-      { error: 'Internal Server Error' },
+      { error: 'Internal Server Error', details: e.message },
       { status: 500 }
     );
   }

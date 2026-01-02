@@ -21,10 +21,19 @@ export const Settings = () => {
   }, []);
 
   const fetchOptions = async () => {
+    setLoading(true);
     try {
       const res = await fetch('/api/options');
       if (res.ok) {
         const data = await res.json();
+        
+        // Check for errors
+        if (data.error) {
+          console.error('API returned error:', data.error);
+          setLoading(false);
+          return;
+        }
+        
         // Handle migration from old format
         if (data.reasons && Array.isArray(data.reasons) && data.reasons.length > 0) {
           const firstItem = data.reasons[0];
@@ -32,10 +41,23 @@ export const Settings = () => {
             data.reasons = [{ name: 'General', items: data.reasons }];
           }
         }
+        
+        // Ensure we have valid structure
+        if (!data.reasons || !Array.isArray(data.reasons)) {
+          data.reasons = [];
+        }
+        if (!data.sources || !Array.isArray(data.sources)) {
+          data.sources = [];
+        }
+        
+        console.log('✅ Loaded options from database:', data);
         setOptions(data);
+      } else {
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Failed to fetch options:', errorData);
       }
     } catch (error) {
-      console.error('Failed to fetch options', error);
+      console.error('Failed to fetch options from database:', error);
     } finally {
       setLoading(false);
     }

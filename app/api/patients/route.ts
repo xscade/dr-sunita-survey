@@ -3,14 +3,33 @@ import clientPromise from '@/lib/mongodb';
 
 export async function GET() {
   try {
-    const client = await clientPromise;
+    // Connect to MongoDB
+    let client;
+    try {
+      client = await clientPromise;
+    } catch (connectionError: any) {
+      console.error("MongoDB Connection Error:", connectionError);
+      return NextResponse.json(
+        { error: 'Database connection failed', details: connectionError.message },
+        { status: 500 }
+      );
+    }
+
     const db = client.db('dr_sunita_db');
     const collection = db.collection('patients');
     
+    // Fetch ALL patients from database - no fallbacks, no defaults
     const patients = await collection.find({}).sort({ submittedAt: -1 }).toArray();
+    
+    console.log(`✅ Fetched ${patients.length} patients from database`);
     return NextResponse.json(patients);
   } catch (e: any) {
     console.error("Database Error:", e);
+    console.error("Error details:", {
+      message: e.message,
+      stack: e.stack,
+      name: e.name
+    });
     return NextResponse.json(
       { error: 'Internal Server Error', details: e.message },
       { status: 500 }
