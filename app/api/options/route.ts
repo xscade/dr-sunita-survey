@@ -8,7 +8,7 @@ export async function GET() {
     const db = client.db('dr_sunita_db');
     const collection = db.collection('form_options');
     
-    const options = await collection.findOne({ _id: 'global_options' });
+    const options = await collection.findOne({ key: 'global_options' });
     if (!options) {
       return NextResponse.json({
         reasons: DEFAULT_REASONS,
@@ -28,7 +28,9 @@ export async function GET() {
       }
     }
     
-    return NextResponse.json(options);
+    // Remove the key field from response
+    const { key, ...responseData } = options;
+    return NextResponse.json(responseData);
   } catch (e: any) {
     console.error("Options API Error:", e);
     return NextResponse.json(
@@ -69,8 +71,8 @@ export async function POST(request: NextRequest) {
     const collection = db.collection('form_options');
 
     await collection.updateOne(
-      { _id: 'global_options' },
-      { $set: { reasons, sources, updatedAt: new Date() } },
+      { key: 'global_options' },
+      { $set: { key: 'global_options', reasons, sources, updatedAt: new Date() } },
       { upsert: true }
     );
 
