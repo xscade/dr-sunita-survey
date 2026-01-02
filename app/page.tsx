@@ -189,7 +189,10 @@ const ReasonSelectionSlide = ({ data, updateData, onNext, onPrev, options }: Sli
 };
 
 const SourceSlide = ({ data, updateData, onNext, options }: SlideProps) => {
-  const sources = options && options.length > 0 ? options : DEFAULT_SOURCES;
+  // Type guard: ensure options is a string array (sources, not categories)
+  const sources: string[] = options && Array.isArray(options) && options.length > 0 && typeof options[0] === 'string' 
+    ? (options as string[]) 
+    : DEFAULT_SOURCES;
   const displaySources = sources.filter(s => s !== 'Other');
   displaySources.push('Other');
 
