@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Button } from '../Button';
 
@@ -38,10 +40,10 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F5EAE6] px-4">
-      <div className="bg-white p-8 rounded-3xl shadow-xl max-w-sm w-full border border-[#9F6449]/10">
+    <div className="min-h-screen flex items-center justify-center bg-white px-4">
+      <div className="bg-white p-8 rounded-3xl shadow-xl max-w-sm w-full border border-[#A1534E]/10">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-[#9F6449]">Krest Dental</h1>
+          <h1 className="text-2xl font-bold text-[#A1534E]">Dr Sunita Aesthetics</h1>
           <p className="text-gray-500">Admin Dashboard</p>
         </div>
         
@@ -52,7 +54,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-[#9F6449] focus:ring-0 outline-none"
+              className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-[#A1534E] focus:ring-0 outline-none"
               placeholder="Enter username"
             />
           </div>
@@ -63,7 +65,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-[#9F6449] focus:ring-0 outline-none"
+              className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-[#A1534E] focus:ring-0 outline-none"
               placeholder="Enter password"
             />
           </div>
@@ -78,7 +80,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         </form>
         
         <div className="mt-6 text-center">
-          <a href="/" className="text-sm text-gray-400 hover:text-[#9F6449]">Back to Form</a>
+          <a href="/" className="text-sm text-gray-400 hover:text-[#A1534E]">Back to Form</a>
         </div>
       </div>
     </div>

@@ -1,8 +1,9 @@
+'use client';
+
 import { useState, useEffect, useRef } from 'react';
-import { ProgressBar } from './components/ProgressBar';
-import { Button } from './components/Button';
-import { OptionCard } from './components/OptionCard';
-import { Dashboard } from './components/dashboard/Dashboard';
+import { ProgressBar } from '@/components/ProgressBar';
+import { Button } from '@/components/Button';
+import { OptionCard } from '@/components/OptionCard';
 import { 
   PatientFormData, 
   VisitType, 
@@ -10,20 +11,17 @@ import {
   SlideProps,
   DEFAULT_REASONS,
   DEFAULT_SOURCES,
-  AD_SOURCES
-} from './types';
-import { generateWelcomeMessage } from './services/geminiService';
+  AD_SOURCES,
+  ReasonCategory
+} from '@/types';
 
-// --- Slide Components ---
-
-// Slide 1: Welcome
+// Slide Components
 const WelcomeSlide = ({ onNext }: { onNext: () => void }) => (
   <div className="flex flex-col items-center text-center space-y-8 animate-fade-in">
-    <div className="w-24 h-24 bg-[#F5EAE6] border-2 border-[#9F6449]/20 rounded-full flex items-center justify-center mb-4 text-4xl">
-      🦷
+    <div className="w-24 h-24 bg-white border-2 border-[#A1534E]/20 rounded-full flex items-center justify-center mb-4 text-4xl">
+      ✨
     </div>
-    {/* Header text hidden here via parent logic, but icon/title remain */}
-    <h1 className="text-4xl font-bold text-slate-900">Welcome to<br/><span className="text-[#9F6449]">Krest Dental</span></h1>
+    <h1 className="text-4xl font-bold text-slate-900">Welcome to<br/><span className="text-[#A1534E]">Dr Sunita Aesthetics</span></h1>
     <p className="text-lg text-gray-500 max-w-xs mx-auto">We're happy to see you! Please fill out these quick details to check in.</p>
     <div className="w-full max-w-md pt-8">
       <Button fullWidth onClick={onNext} className="text-lg py-4">Start Check-in</Button>
@@ -31,7 +29,6 @@ const WelcomeSlide = ({ onNext }: { onNext: () => void }) => (
   </div>
 );
 
-// Slide 2: Visit Type
 const VisitTypeSlide = ({ data, updateData, onNext }: SlideProps) => {
   const options = [
     { label: "Yes, it's my first time", value: VisitType.FirstTime },
@@ -40,7 +37,7 @@ const VisitTypeSlide = ({ data, updateData, onNext }: SlideProps) => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-slate-900">Is this your first visit to Krest Dental?</h2>
+      <h2 className="text-2xl font-bold text-slate-900">Is this your first visit to Dr Sunita Aesthetics?</h2>
       <div className="space-y-3">
         {options.map((opt) => (
           <OptionCard 
@@ -58,14 +55,13 @@ const VisitTypeSlide = ({ data, updateData, onNext }: SlideProps) => {
   );
 };
 
-// Slide 3: Name
 const NameSlide = ({ data, updateData, onNext }: SlideProps) => (
   <div className="space-y-6">
     <h2 className="text-2xl font-bold text-slate-900">What is your full name?</h2>
     <input
       type="text"
       placeholder="e.g. John Doe"
-      className="w-full p-4 text-xl border-2 border-gray-200 rounded-xl focus:border-[#9F6449] focus:ring-0 outline-none transition-colors"
+      className="w-full p-4 text-xl border-2 border-gray-200 rounded-xl focus:border-[#A1534E] focus:ring-0 outline-none transition-colors"
       value={data.fullName}
       onChange={(e) => updateData({ fullName: e.target.value })}
       autoFocus
@@ -80,14 +76,13 @@ const NameSlide = ({ data, updateData, onNext }: SlideProps) => (
   </div>
 );
 
-// Slide 4: Mobile
 const MobileSlide = ({ data, updateData, onNext }: SlideProps) => (
   <div className="space-y-6">
     <h2 className="text-2xl font-bold text-slate-900">Your mobile number?</h2>
     <input
       type="tel"
       placeholder="1234567890"
-      className="w-full p-4 text-xl border-2 border-gray-200 rounded-xl focus:border-[#9F6449] focus:ring-0 outline-none transition-colors"
+      className="w-full p-4 text-xl border-2 border-gray-200 rounded-xl focus:border-[#A1534E] focus:ring-0 outline-none transition-colors"
       value={data.mobileNumber}
       onChange={(e) => {
         const val = e.target.value.replace(/\D/g, '');
@@ -105,22 +100,33 @@ const MobileSlide = ({ data, updateData, onNext }: SlideProps) => (
   </div>
 );
 
-// Slide 5: Reason
-const ReasonSlide = ({ data, updateData, onNext, options }: SlideProps) => {
-  // Use dynamic options or fallback to defaults
-  const reasons = options && options.length > 0 ? options : DEFAULT_REASONS;
+// Step 1: Category Selection
+const CategorySelectionSlide = ({ data, updateData, onNext, options }: SlideProps) => {
+  // Handle both old format (string array) and new format (categorized)
+  let categories: ReasonCategory[] = DEFAULT_REASONS;
+  
+  if (options && options.length > 0) {
+    const firstItem = options[0];
+    if (typeof firstItem === 'string') {
+      // Old format - convert to categorized
+      categories = [{ name: 'General', items: options as string[] }];
+    } else {
+      // New format - already categorized
+      categories = options as ReasonCategory[];
+    }
+  }
   
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-slate-900">What brings you in today?</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-        {reasons.map((r) => (
+        {categories.map((category) => (
           <OptionCard 
-            key={r}
-            label={r}
-            selected={data.reason === r}
+            key={category.name}
+            label={category.name}
+            selected={data.selectedCategory === category.name}
             onClick={() => {
-              updateData({ reason: r });
+              updateData({ selectedCategory: category.name });
               setTimeout(onNext, 250);
             }}
           />
@@ -130,11 +136,60 @@ const ReasonSlide = ({ data, updateData, onNext, options }: SlideProps) => {
   );
 };
 
-// Slide 6: Lead Source
+// Step 2: Reason Selection within Selected Category
+const ReasonSelectionSlide = ({ data, updateData, onNext, onPrev, options }: SlideProps) => {
+  // Handle both old format (string array) and new format (categorized)
+  let categories: ReasonCategory[] = DEFAULT_REASONS;
+  
+  if (options && options.length > 0) {
+    const firstItem = options[0];
+    if (typeof firstItem === 'string') {
+      // Old format - convert to categorized
+      categories = [{ name: 'General', items: options as string[] }];
+    } else {
+      // New format - already categorized
+      categories = options as ReasonCategory[];
+    }
+  }
+  
+  // Find the selected category
+  const selectedCategory = categories.find(cat => cat.name === data.selectedCategory);
+  
+  if (!selectedCategory) {
+    // Fallback if category not found
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-slate-900">Error: Category not found</h2>
+        <Button onClick={onPrev}>Go Back</Button>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+        <span>{selectedCategory.name}</span>
+      </div>
+      <h2 className="text-2xl font-bold text-slate-900">Select a specific procedure</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+        {selectedCategory.items.map((item) => (
+          <OptionCard 
+            key={item}
+            label={item}
+            selected={data.reason === item}
+            onClick={() => {
+              updateData({ reason: item });
+              setTimeout(onNext, 250);
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const SourceSlide = ({ data, updateData, onNext, options }: SlideProps) => {
   const sources = options && options.length > 0 ? options : DEFAULT_SOURCES;
-  
-  // Ensure 'Other' is always last if it exists, or append it if missing
   const displaySources = sources.filter(s => s !== 'Other');
   displaySources.push('Other');
 
@@ -161,7 +216,7 @@ const SourceSlide = ({ data, updateData, onNext, options }: SlideProps) => {
           <input
             type="text"
             placeholder="Please specify..."
-            className="w-full p-3 border-2 border-gray-200 rounded-xl mt-2 focus:border-[#9F6449] focus:ring-0 outline-none"
+            className="w-full p-3 border-2 border-gray-200 rounded-xl mt-2 focus:border-[#A1534E] focus:ring-0 outline-none"
             value={data.otherSourceDetails || ''}
             onChange={(e) => updateData({ otherSourceDetails: e.target.value })}
           />
@@ -174,7 +229,6 @@ const SourceSlide = ({ data, updateData, onNext, options }: SlideProps) => {
   );
 };
 
-// Slide 7: Ad Attribution
 const AttributionSlide = ({ data, updateData, onNext }: SlideProps) => {
   const ads = Object.values(AdType);
   return (
@@ -198,14 +252,12 @@ const AttributionSlide = ({ data, updateData, onNext }: SlideProps) => {
   );
 };
 
-// Slide: Google Detail (Intermediate)
 const GoogleDetailSlide = ({ updateData, onNext }: { updateData: (fields: Partial<PatientFormData>) => void, onNext: () => void }) => {
   return (
     <div className="space-y-8 h-full flex flex-col justify-center">
       <h2 className="text-2xl font-bold text-slate-900 text-center">How did you find us on Google?</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-        {/* Google Ads Option */}
         <div 
           className="group cursor-pointer relative flex flex-col items-center gap-4 transition-transform duration-300 hover:scale-[1.02]"
           onClick={() => {
@@ -213,20 +265,19 @@ const GoogleDetailSlide = ({ updateData, onNext }: { updateData: (fields: Partia
             setTimeout(onNext, 250);
           }}
         >
-          <div className="w-full aspect-[9/16] bg-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative border-2 border-transparent hover:border-[#9F6449]/30">
+          <div className="w-full aspect-[9/16] bg-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative border-2 border-transparent hover:border-[#A1534E]/30">
             <img 
-              src="https://storage.googleapis.com/client-web-files/krest%20dental%20ai/google%20ads.PNG" 
+              src="https://storage.googleapis.com/client-web-files/dr-sunita-aesthetics/google%20ads.PNG" 
               alt="Google Ads" 
               className="w-full h-full object-cover object-top"
             />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
           </div>
-          <div className="bg-white border border-gray-200 px-4 py-2 rounded-full shadow-sm text-sm font-semibold text-gray-700 group-hover:border-[#9F6449] group-hover:text-[#9F6449] transition-colors">
+          <div className="bg-white border border-gray-200 px-4 py-2 rounded-full shadow-sm text-sm font-semibold text-gray-700 group-hover:border-[#A1534E] group-hover:text-[#A1534E] transition-colors">
             Sponsored Ad
           </div>
         </div>
 
-        {/* Practo Option */}
         <div 
           className="group cursor-pointer relative flex flex-col items-center gap-4 transition-transform duration-300 hover:scale-[1.02]"
           onClick={() => {
@@ -234,9 +285,9 @@ const GoogleDetailSlide = ({ updateData, onNext }: { updateData: (fields: Partia
             setTimeout(onNext, 250);
           }}
         >
-          <div className="w-full aspect-[9/16] bg-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative border-2 border-transparent hover:border-[#9F6449]/30">
+          <div className="w-full aspect-[9/16] bg-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative border-2 border-transparent hover:border-[#A1534E]/30">
             <video 
-              src="https://storage.googleapis.com/client-web-files/krest%20dental%20ai/New%20Video%202%20Screens.mov"
+              src="https://storage.googleapis.com/client-web-files/dr-sunita-aesthetics/New%20Video%202%20Screens.mov"
               autoPlay 
               loop 
               muted 
@@ -245,7 +296,7 @@ const GoogleDetailSlide = ({ updateData, onNext }: { updateData: (fields: Partia
             />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
           </div>
-          <div className="bg-white border border-gray-200 px-4 py-2 rounded-full shadow-sm text-sm font-semibold text-gray-700 group-hover:border-[#9F6449] group-hover:text-[#9F6449] transition-colors">
+          <div className="bg-white border border-gray-200 px-4 py-2 rounded-full shadow-sm text-sm font-semibold text-gray-700 group-hover:border-[#A1534E] group-hover:text-[#A1534E] transition-colors">
             Practo Listing
           </div>
         </div>
@@ -254,70 +305,19 @@ const GoogleDetailSlide = ({ updateData, onNext }: { updateData: (fields: Partia
   );
 };
 
-// Slide 8: Thank You
-const ThankYouSlide = ({ data }: { data: PatientFormData }) => {
-  const [message, setMessage] = useState("Thank you! Our team will assist you shortly.");
-  const [generatingMsg, setGeneratingMsg] = useState(true);
-  const [saveStatus, setSaveStatus] = useState<'saving' | 'success' | 'error'>('saving');
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchMessage = async () => {
-      if (data.fullName && data.reason) {
-        const msg = await generateWelcomeMessage(data.fullName, data.reason);
-        if (isMounted) {
-          setMessage(msg);
-          setGeneratingMsg(false);
-        }
-      } else {
-        if (isMounted) setGeneratingMsg(false);
-      }
-    };
-
-    const saveData = async () => {
-      try {
-        const response = await fetch('/api/patients', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        });
-
-        if (response.ok) {
-          if (isMounted) setSaveStatus('success');
-        } else {
-          throw new Error("Server responded with error");
-        }
-      } catch (error) {
-        console.error("Failed to save data:", error);
-        if (isMounted) setSaveStatus('error');
-      }
-    };
-
-    fetchMessage();
-    saveData();
-
-    return () => { isMounted = false; };
-  }, [data]);
+const ThankYouSlide = ({ data, saveStatus }: { data: PatientFormData; saveStatus: 'saving' | 'success' | 'error' }) => {
 
   return (
     <div className="flex flex-col items-center text-center space-y-8 animate-fade-in">
-      <div className="w-24 h-24 bg-[#F5EAE6] text-[#9F6449] rounded-full flex items-center justify-center mb-4 text-4xl border-2 border-[#9F6449]/20">
+      <div className="w-24 h-24 bg-white text-[#A1534E] rounded-full flex items-center justify-center mb-4 text-4xl border-2 border-[#A1534E]/20">
         ✓
       </div>
       <h1 className="text-3xl font-bold text-slate-900">All Set!</h1>
       
       <div className="min-h-[80px] flex items-center justify-center">
-        {generatingMsg ? (
-           <div className="flex flex-col items-center">
-             <div className="w-5 h-5 border-2 border-[#9F6449] border-t-transparent rounded-full animate-spin mb-2"></div>
-             <p className="text-gray-400 text-sm">Personalizing message...</p>
-           </div>
-        ) : (
-          <p className="text-xl text-gray-600 max-w-md mx-auto leading-relaxed transition-all duration-500">
-            {message}
-          </p>
-        )}
+        <p className="text-xl text-gray-600 max-w-md mx-auto leading-relaxed transition-all duration-500">
+          Thank you, {data.fullName}! Our team will assist you shortly.
+        </p>
       </div>
 
       <div className="text-sm pt-4">
@@ -335,32 +335,38 @@ const ThankYouSlide = ({ data }: { data: PatientFormData }) => {
   );
 };
 
-// --- Main Survey App Component ---
 const SurveyApp = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [formData, setFormData] = useState<PatientFormData>({
     fullName: '',
     mobileNumber: '',
   });
-  const [options, setOptions] = useState<{reasons: string[], sources: string[]}>({
+  const [options, setOptions] = useState<{reasons: ReasonCategory[] | string[], sources: string[]}>({
     reasons: DEFAULT_REASONS,
     sources: DEFAULT_SOURCES
   });
+  const [saveStatus, setSaveStatus] = useState<'saving' | 'success' | 'error'>('saving');
+  const hasSavedRef = useRef(false);
 
-  // Ref to track current form data to avoid stale closures in timeouts
   const formDataRef = useRef(formData);
   useEffect(() => {
     formDataRef.current = formData;
   }, [formData]);
 
   useEffect(() => {
-    // Fetch dynamic options on mount
     const fetchOptions = async () => {
       try {
         const res = await fetch('/api/options');
         if (res.ok) {
           const data = await res.json();
           if (data.reasons && data.sources) {
+            // Handle migration from old format
+            if (Array.isArray(data.reasons) && data.reasons.length > 0) {
+              const firstItem = data.reasons[0];
+              if (typeof firstItem === 'string') {
+                data.reasons = [{ name: 'General', items: data.reasons }];
+              }
+            }
             setOptions(data);
           }
         }
@@ -375,17 +381,47 @@ const SurveyApp = () => {
     setFormData(prev => ({ ...prev, ...fields }));
   };
 
-  // Determine if current source triggers ad attribution
-  // NOTE: We use formDataRef inside handleNext to get fresh state
   const isAdSource = AD_SOURCES.includes(formData.leadSource || '');
   
+  const savePatientData = async (data: PatientFormData) => {
+    // Prevent duplicate saves
+    if (hasSavedRef.current) {
+      return;
+    }
+    
+    hasSavedRef.current = true;
+    setSaveStatus('saving');
+
+    try {
+      const response = await fetch('/api/patients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        setSaveStatus('success');
+      } else {
+        throw new Error("Server responded with error");
+      }
+    } catch (error) {
+      console.error("Failed to save data:", error);
+      setSaveStatus('error');
+      hasSavedRef.current = false; // Allow retry on error
+    }
+  };
+
   const handleNext = () => {
     const currentData = formDataRef.current;
     const currentIsAdSource = AD_SOURCES.includes(currentData.leadSource || '');
 
-    if (currentSlide === 5) {
-      // Special handling for Google Search -> Show Detailed Source Slide (Index 10)
-      // We check case-insensitive and trimmed to be safe with DB options
+    if (currentSlide === 4) {
+      // After category selection, go to reason selection
+      setCurrentSlide(11);
+    } else if (currentSlide === 11) {
+      // After reason selection, go to source selection
+      setCurrentSlide(5);
+    } else if (currentSlide === 5) {
       if (currentData.leadSource?.trim().toLowerCase() === 'google search') {
         setCurrentSlide(10);
         return;
@@ -394,11 +430,17 @@ const SurveyApp = () => {
       if (currentIsAdSource) {
         setCurrentSlide(6);
       } else {
+        // Before going to thank you slide, save the data
+        savePatientData(currentData);
         setCurrentSlide(7);
       }
+    } else if (currentSlide === 6) {
+      // Before going to thank you slide, save the data
+      savePatientData(currentData);
+      setCurrentSlide(7);
     } else if (currentSlide === 10) {
-      // From Google Detail Slide (Index 10)
-      // Skip Attribution (Slide 6) regardless of selection, go straight to Thank You (Slide 7)
+      // Before going to thank you slide, save the data
+      savePatientData(currentData);
       setCurrentSlide(7);
     } else {
       setCurrentSlide(prev => prev + 1);
@@ -411,22 +453,22 @@ const SurveyApp = () => {
 
     if (currentSlide === 0) return;
     
-    if (currentSlide === 7) {
+    if (currentSlide === 11) {
+      // From reason selection, go back to category selection
+      setCurrentSlide(4);
+    } else if (currentSlide === 7) {
       if (currentIsAdSource) {
         setCurrentSlide(6);
       } else {
-        // If we are skipping attribution (e.g. Practo), go back to Source list (5) 
-        // or Google Detail (10)?
-        // Going back to 5 allows re-selection.
         setCurrentSlide(5);
       }
     } else if (currentSlide === 6) {
-      // If we are on Attribution, going back usually goes to Source (5).
-      // If they came via Google Detail (10), we could go back there, 
-      // but going to 5 is safer/simpler flow reset.
       setCurrentSlide(5);
     } else if (currentSlide === 10) {
       setCurrentSlide(5);
+    } else if (currentSlide === 5) {
+      // From source selection, go back to reason selection
+      setCurrentSlide(11);
     } else {
       setCurrentSlide(prev => prev - 1);
     }
@@ -439,22 +481,22 @@ const SurveyApp = () => {
   }, [currentSlide]);
 
   return (
-    <div className="min-h-screen bg-[#F5EAE6] flex flex-col items-center py-8 px-4 sm:px-6 lg:px-8">
-      {currentSlide > 0 && currentSlide < 7 && (
-        <ProgressBar currentStep={currentSlide} totalSteps={totalSteps} />
+    <div className="min-h-screen bg-white flex flex-col items-center py-8 px-4 sm:px-6 lg:px-8">
+      {currentSlide > 0 && currentSlide < 7 && currentSlide !== 11 && (
+        <ProgressBar currentStep={currentSlide > 11 ? currentSlide - 1 : currentSlide} totalSteps={totalSteps} />
       )}
 
       <div className="w-full max-w-lg mb-6 flex justify-between items-center h-8">
         {currentSlide > 0 ? (
-          <div className="text-xl font-bold text-[#9F6449] tracking-tight">Krest Dental</div>
+          <div className="text-xl font-bold text-[#A1534E] tracking-tight">Dr Sunita Aesthetics</div>
         ) : (
           <div></div>
         )}
-        {currentSlide > 0 && currentSlide < 7 && (
+        {(currentSlide > 0 && currentSlide < 7) || currentSlide === 11 ? (
            <button onClick={handlePrev} className="text-gray-400 hover:text-gray-600 text-sm font-medium">
              Back
            </button>
-        )}
+        ) : null}
       </div>
 
       <div className="w-full max-w-lg bg-white rounded-3xl shadow-xl overflow-hidden p-6 sm:p-10 min-h-[400px] flex flex-col justify-center relative">
@@ -462,37 +504,23 @@ const SurveyApp = () => {
         {currentSlide === 1 && <VisitTypeSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} />}
         {currentSlide === 2 && <NameSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} />}
         {currentSlide === 3 && <MobileSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} />}
-        {/* Pass dynamic options to slides */}
-        {currentSlide === 4 && <ReasonSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} options={options.reasons} />}
+        {currentSlide === 4 && <CategorySelectionSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} options={options.reasons as ReasonCategory[]} />}
+        {currentSlide === 11 && <ReasonSelectionSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} options={options.reasons as ReasonCategory[]} />}
         {currentSlide === 5 && <SourceSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} options={options.sources} />}
         {currentSlide === 10 && <GoogleDetailSlide updateData={updateData} onNext={handleNext} />}
         {currentSlide === 6 && <AttributionSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} />}
-        {currentSlide === 7 && <ThankYouSlide data={formData} />}
+        {currentSlide === 7 && <ThankYouSlide data={formData} saveStatus={saveStatus} />}
       </div>
 
       <div className="mt-8 text-center text-xs text-gray-400 flex flex-col gap-2">
-        <span>&copy; {new Date().getFullYear()} Krest Dental Clinic</span>
-        <a href="/dashboard" className="text-[#9F6449]/40 hover:text-[#9F6449] transition-colors">Admin Login</a>
+        <span>&copy; {new Date().getFullYear()} Dr Sunita Aesthetics</span>
+        <a href="/dashboard" className="text-[#A1534E]/40 hover:text-[#A1534E] transition-colors">Admin Login</a>
       </div>
     </div>
   );
 };
 
-// --- Root App with Simple Routing ---
-export default function App() {
-  const [view, setView] = useState<'survey' | 'dashboard'>('survey');
-
-  useEffect(() => {
-    if (window.location.pathname === '/dashboard') {
-      setView('dashboard');
-    } else {
-      setView('survey');
-    }
-  }, []);
-
-  if (view === 'dashboard') {
-    return <Dashboard />;
-  }
-
+export default function Home() {
   return <SurveyApp />;
 }
+

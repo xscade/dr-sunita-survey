@@ -4,13 +4,28 @@ export enum VisitType {
 }
 
 // Default constants for initialization and fallback
-export const DEFAULT_REASONS = [
-  'Pain / Sensitivity',
-  'Cleaning / Check-up',
-  'Tooth Cavity',
-  'Braces / Aligners',
-  'Cosmetic Concern',
-  'Not Sure / Consultation'
+export interface ReasonCategory {
+  name: string;
+  items: string[];
+}
+
+export const DEFAULT_REASONS: ReasonCategory[] = [
+  {
+    name: 'Facial Procedures',
+    items: ['Botox', 'Fillers', 'Thread Lift', 'Facial Rejuvenation']
+  },
+  {
+    name: 'Body Contouring',
+    items: ['Liposuction', 'Tummy Tuck', 'Body Lift', 'Breast Procedures']
+  },
+  {
+    name: 'Skin Treatments',
+    items: ['Laser Treatment', 'Chemical Peel', 'Microneedling', 'Skin Rejuvenation']
+  },
+  {
+    name: 'Consultation',
+    items: ['General Consultation', 'Follow-up', 'Not Sure']
+  }
 ];
 
 export const DEFAULT_SOURCES = [
@@ -37,7 +52,7 @@ export enum AdType {
 }
 
 export interface FormOptions {
-  reasons: string[];
+  reasons: ReasonCategory[];
   sources: string[];
 }
 
@@ -45,6 +60,7 @@ export interface PatientFormData {
   visitType?: VisitType;
   fullName: string;
   mobileNumber: string;
+  selectedCategory?: string;
   reason?: string;
   leadSource?: string;
   otherSourceDetails?: string;
@@ -62,5 +78,5 @@ export interface SlideProps {
   updateData: (fields: Partial<PatientFormData>) => void;
   onNext: () => void;
   onPrev: () => void;
-  options?: string[]; // Added for dynamic options
+  options?: string[] | ReasonCategory[];
 }

@@ -1,20 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { Login } from './Login';
-import { Analytics } from './Analytics';
-import { PatientTable } from './PatientTable';
-import { Settings } from './Settings';
-import { Patient } from '../../types';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Login } from '@/components/dashboard/Login';
+import { Analytics } from '@/components/dashboard/Analytics';
+import { PatientTable } from '@/components/dashboard/PatientTable';
+import { Settings } from '@/components/dashboard/Settings';
+import { Patient } from '@/types';
 import { LayoutDashboard, Table2, LogOut, RefreshCw, Settings as SettingsIcon } from 'lucide-react';
 
-export const Dashboard = () => {
+export default function DashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<'table' | 'analytics' | 'settings'>('table');
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(false);
 
   const checkAuth = () => {
-    const session = localStorage.getItem('drsunita_admin_session');
-    if (session) setIsAuthenticated(true);
+    if (typeof window !== 'undefined') {
+      const session = localStorage.getItem('drsunita_admin_session');
+      if (session) setIsAuthenticated(true);
+    }
   };
 
   useEffect(() => {
@@ -43,13 +47,17 @@ export const Dashboard = () => {
   }, [isAuthenticated, activeTab]);
 
   const handleLogin = () => {
-    localStorage.setItem('drsunita_admin_session', 'valid');
-    setIsAuthenticated(true);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('drsunita_admin_session', 'valid');
+      setIsAuthenticated(true);
+    }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('drsunita_admin_session');
-    setIsAuthenticated(false);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('drsunita_admin_session');
+      setIsAuthenticated(false);
+    }
   };
 
   if (!isAuthenticated) {
@@ -58,7 +66,6 @@ export const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navbar */}
       <nav className="bg-white border-b border-[#A1534E]/10 px-6 py-4 flex justify-between items-center sticky top-0 z-10">
         <div className="flex items-center gap-4">
            <div className="text-xl font-bold text-[#A1534E]">Dr Sunita Aesthetics Dashboard</div>
@@ -103,7 +110,6 @@ export const Dashboard = () => {
         </div>
       </nav>
 
-      {/* Main Content */}
       <main className="p-6 max-w-7xl mx-auto">
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-gray-800">
@@ -126,4 +132,5 @@ export const Dashboard = () => {
       </main>
     </div>
   );
-};
+}
+
