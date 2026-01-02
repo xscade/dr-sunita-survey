@@ -76,6 +76,115 @@ const NameSlide = ({ data, updateData, onNext }: SlideProps) => (
   </div>
 );
 
+// Phone lookup slide for returning visitors
+const PhoneLookupSlide = ({ data, updateData, onNext, onFound, onNotFound }: {
+  data: PatientFormData;
+  updateData: (fields: Partial<PatientFormData>) => void;
+  onNext: () => void;
+  onFound: (name: string) => void;
+  onNotFound: () => void;
+}) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleLookup = async () => {
+    if (!data.mobileNumber || data.mobileNumber.length < 10) {
+      setError('Please enter a valid 10-digit mobile number');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/patients/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobileNumber: data.mobileNumber }),
+      });
+
+      const result = await res.json();
+
+      if (result.found) {
+        // Patient found - greet with name
+        updateData({ fullName: result.fullName });
+        onFound(result.fullName);
+      } else {
+        // Patient not found - ask for name
+        onNotFound();
+      }
+    } catch (err) {
+      console.error('Lookup error:', err);
+      setError('Unable to verify. Please continue with your details.');
+      // On error, continue as if not found
+      setTimeout(() => {
+        onNotFound();
+      }, 2000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-slate-900">Please enter your mobile number</h2>
+      <p className="text-gray-500 text-sm">We'll look up your previous visit details</p>
+      <input
+        type="tel"
+        placeholder="1234567890"
+        className="w-full p-4 text-xl border-2 border-gray-200 rounded-xl focus:border-[#A1534E] focus:ring-0 outline-none transition-colors"
+        value={data.mobileNumber}
+        onChange={(e) => {
+          const val = e.target.value.replace(/\D/g, '');
+          updateData({ mobileNumber: val });
+          setError('');
+        }}
+        onKeyPress={(e) => {
+          if (e.key === 'Enter' && !loading && data.mobileNumber && data.mobileNumber.length >= 10) {
+            handleLookup();
+          }
+        }}
+        autoFocus
+        disabled={loading}
+      />
+      {error && (
+        <p className="text-red-500 text-sm">{error}</p>
+      )}
+      <Button 
+        fullWidth 
+        onClick={handleLookup} 
+        disabled={!data.mobileNumber || data.mobileNumber.length < 10 || loading}
+      >
+        {loading ? 'Looking up...' : 'Continue'}
+      </Button>
+    </div>
+  );
+};
+
+// Greeting slide when returning patient is found
+const ReturningPatientGreetingSlide = ({ name, onNext }: { name: string; onNext: () => void }) => {
+  useEffect(() => {
+    // Auto-advance after 2 seconds
+    const timer = setTimeout(() => {
+      onNext();
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [onNext]);
+
+  return (
+    <div className="flex flex-col items-center text-center space-y-6 animate-fade-in">
+      <div className="w-20 h-20 bg-[#A1534E]/10 text-[#A1534E] rounded-full flex items-center justify-center mb-4 text-3xl">
+        👋
+      </div>
+      <h2 className="text-2xl font-bold text-slate-900">Welcome back, {name}!</h2>
+      <p className="text-gray-600">We're glad to see you again.</p>
+      <div className="pt-4">
+        <Button fullWidth onClick={onNext}>Continue</Button>
+      </div>
+    </div>
+  );
+};
+
 const MobileSlide = ({ data, updateData, onNext }: SlideProps) => (
   <div className="space-y-6">
     <h2 className="text-2xl font-bold text-slate-900">Your mobile number?</h2>
@@ -346,6 +455,7 @@ const SurveyApp = () => {
   });
   const [options, setOptions] = useState<{reasons: ReasonCategory[] | string[], sources: string[]} | null>(null);
   const [saveStatus, setSaveStatus] = useState<'saving' | 'success' | 'error'>('saving');
+  const [returningPatientName, setReturningPatientName] = useState<string>('');
   const hasSavedRef = useRef(false);
 
   const formDataRef = useRef(formData);
@@ -415,7 +525,25 @@ const SurveyApp = () => {
     const currentData = formDataRef.current;
     const currentIsAdSource = AD_SOURCES.includes(currentData.leadSource || '');
 
-    if (currentSlide === 4) {
+    if (currentSlide === 1) {
+      // After visit type selection
+      if (currentData.visitType === VisitType.Returning) {
+        // Returning visitor - go to phone lookup
+        setCurrentSlide(12);
+      } else {
+        // First time - go to name
+        setCurrentSlide(2);
+      }
+    } else if (currentSlide === 2) {
+      // After name slide
+      if (currentData.visitType === VisitType.Returning && currentData.mobileNumber) {
+        // Returning visitor who wasn't found - already has mobile, skip mobile slide
+        setCurrentSlide(4);
+      } else {
+        // First time visitor - go to mobile
+        setCurrentSlide(3);
+      }
+    } else if (currentSlide === 4) {
       // After category selection, go to reason selection
       setCurrentSlide(11);
     } else if (currentSlide === 11) {
@@ -425,9 +553,23 @@ const SurveyApp = () => {
       // Before going to thank you slide, save the data
       savePatientData(currentData);
       setCurrentSlide(7);
+    } else if (currentSlide === 13) {
+      // After greeting slide, go to category selection
+      setCurrentSlide(4);
     } else {
       setCurrentSlide(prev => prev + 1);
     }
+  };
+
+  const handlePhoneLookupFound = (name: string) => {
+    setReturningPatientName(name);
+    setCurrentSlide(13); // Go to greeting slide
+  };
+
+  const handlePhoneLookupNotFound = () => {
+    // Not found - ask for name, then mobile (but mobile is already entered)
+    // Skip mobile slide since we already have it, go to name then category
+    setCurrentSlide(2); // Go to name slide
   };
 
   const handlePrev = () => {
@@ -436,7 +578,20 @@ const SurveyApp = () => {
 
     if (currentSlide === 0) return;
     
-    if (currentSlide === 11) {
+    if (currentSlide === 2) {
+      // From name slide, check if we came from returning visitor flow
+      if (currentData.visitType === VisitType.Returning) {
+        setCurrentSlide(12); // Go back to phone lookup
+      } else {
+        setCurrentSlide(1); // Go back to visit type
+      }
+    } else if (currentSlide === 12) {
+      // From phone lookup, go back to visit type
+      setCurrentSlide(1);
+    } else if (currentSlide === 13) {
+      // From greeting, go back to phone lookup
+      setCurrentSlide(12);
+    } else if (currentSlide === 11) {
       // From reason selection, go back to category selection
       setCurrentSlide(4);
     } else if (currentSlide === 7) {
@@ -445,6 +600,13 @@ const SurveyApp = () => {
     } else if (currentSlide === 5) {
       // From source selection, go back to reason selection
       setCurrentSlide(11);
+    } else if (currentSlide === 4) {
+      // From category selection, check if returning visitor
+      if (currentData.visitType === VisitType.Returning && returningPatientName) {
+        setCurrentSlide(13); // Go back to greeting
+      } else {
+        setCurrentSlide(2); // Go back to name
+      }
     } else {
       setCurrentSlide(prev => prev - 1);
     }
@@ -458,7 +620,7 @@ const SurveyApp = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center py-8 px-4 sm:px-6 lg:px-8">
-      {currentSlide > 0 && currentSlide < 7 && currentSlide !== 11 && (
+      {currentSlide > 0 && currentSlide < 7 && currentSlide !== 11 && currentSlide !== 12 && currentSlide !== 13 && (
         <ProgressBar currentStep={currentSlide > 11 ? currentSlide - 1 : currentSlide} totalSteps={totalSteps} />
       )}
 
@@ -468,7 +630,7 @@ const SurveyApp = () => {
         ) : (
           <div></div>
         )}
-        {(currentSlide > 0 && currentSlide < 7) || currentSlide === 11 ? (
+        {(currentSlide > 0 && currentSlide < 7) || currentSlide === 11 || currentSlide === 12 || currentSlide === 13 ? (
            <button onClick={handlePrev} className="text-gray-400 hover:text-gray-600 text-sm font-medium">
              Back
            </button>
@@ -480,6 +642,8 @@ const SurveyApp = () => {
         {currentSlide === 1 && <VisitTypeSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} />}
         {currentSlide === 2 && <NameSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} />}
         {currentSlide === 3 && <MobileSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} />}
+        {currentSlide === 12 && <PhoneLookupSlide data={formData} updateData={updateData} onNext={handleNext} onFound={handlePhoneLookupFound} onNotFound={handlePhoneLookupNotFound} />}
+        {currentSlide === 13 && <ReturningPatientGreetingSlide name={returningPatientName} onNext={handleNext} />}
         {currentSlide === 4 && <CategorySelectionSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} options={options?.reasons as ReasonCategory[]} />}
         {currentSlide === 11 && <ReasonSelectionSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} options={options?.reasons as ReasonCategory[]} />}
         {currentSlide === 5 && <SourceSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} options={options?.sources} />}
