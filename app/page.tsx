@@ -425,23 +425,6 @@ const SurveyApp = () => {
       // After reason selection, go to source selection
       setCurrentSlide(5);
     } else if (currentSlide === 5) {
-      if (currentData.leadSource?.trim().toLowerCase() === 'google search') {
-        setCurrentSlide(10);
-        return;
-      }
-
-      if (currentIsAdSource) {
-        setCurrentSlide(6);
-      } else {
-        // Before going to thank you slide, save the data
-        savePatientData(currentData);
-        setCurrentSlide(7);
-      }
-    } else if (currentSlide === 6) {
-      // Before going to thank you slide, save the data
-      savePatientData(currentData);
-      setCurrentSlide(7);
-    } else if (currentSlide === 10) {
       // Before going to thank you slide, save the data
       savePatientData(currentData);
       setCurrentSlide(7);
@@ -460,14 +443,7 @@ const SurveyApp = () => {
       // From reason selection, go back to category selection
       setCurrentSlide(4);
     } else if (currentSlide === 7) {
-      if (currentIsAdSource) {
-        setCurrentSlide(6);
-      } else {
-        setCurrentSlide(5);
-      }
-    } else if (currentSlide === 6) {
-      setCurrentSlide(5);
-    } else if (currentSlide === 10) {
+      // From thank you, go back to source selection
       setCurrentSlide(5);
     } else if (currentSlide === 5) {
       // From source selection, go back to reason selection
@@ -477,7 +453,7 @@ const SurveyApp = () => {
     }
   };
 
-  const totalSteps = isAdSource ? 8 : 7;
+  const totalSteps = 6;
 
   useEffect(() => {
     window.scrollTo(0,0);
@@ -510,8 +486,6 @@ const SurveyApp = () => {
         {currentSlide === 4 && <CategorySelectionSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} options={options.reasons as ReasonCategory[]} />}
         {currentSlide === 11 && <ReasonSelectionSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} options={options.reasons as ReasonCategory[]} />}
         {currentSlide === 5 && <SourceSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} options={options.sources} />}
-        {currentSlide === 10 && <GoogleDetailSlide updateData={updateData} onNext={handleNext} />}
-        {currentSlide === 6 && <AttributionSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} />}
         {currentSlide === 7 && <ThankYouSlide data={formData} saveStatus={saveStatus} />}
       </div>
 
