@@ -1,20 +1,59 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Dr. Sunita Aesthetics - Next.js Application
 
-# Run and deploy your AI Studio app
+Patient check-in system for Dr Sunita Aesthetics - Plastic Surgery Clinic built with Next.js.
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/temp/1
+- Patient check-in form with multi-step survey
+- Admin dashboard with analytics
+- MongoDB integration
+- Responsive design
 
-## Run Locally
-
-**Prerequisites:**  Node.js
-
+## Getting Started
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+   ```bash
+   npm install
+   ```
+
+2. Seed the database with admin credentials (optional - admin will be auto-created on first login):
+   ```bash
+   npm run seed
+   ```
+   Or use the API endpoint:
+   ```bash
+   curl -X POST http://localhost:3000/api/seed
+   ```
+
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Admin Credentials
+
+The default admin credentials are:
+- **Username**: `admin`
+- **Password**: `password`
+
+> **Note**: The admin user will be automatically created on the first login attempt if it doesn't exist. You can also use the seed script or API endpoint to create it beforehand.
+
+## Project Structure
+
+- `app/` - Next.js app directory with pages and API routes
+- `components/` - React components
+- `lib/` - Utility functions and MongoDB connection
+- `types.ts` - TypeScript type definitions
+
+## API Routes
+
+- `/api/patients` - Patient data CRUD operations (GET, POST)
+- `/api/options` - Form options management (GET, POST)
+- `/api/login` - Admin authentication (POST)
+- `/api/seed` - Seed database with admin user (GET, POST)
+
+## Deployment
+
+This project is configured for Vercel deployment. The MongoDB connection string is already configured in `lib/mongodb.ts`.
