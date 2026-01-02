@@ -105,7 +105,7 @@ const CategorySelectionSlide = ({ data, updateData, onNext, options }: SlideProp
   // Handle both old format (string array) and new format (categorized)
   let categories: ReasonCategory[] = DEFAULT_REASONS;
   
-  if (options && options.length > 0) {
+  if (options && Array.isArray(options) && options.length > 0) {
     const firstItem = options[0];
     if (typeof firstItem === 'string') {
       // Old format - convert to categorized
@@ -344,10 +344,7 @@ const SurveyApp = () => {
     fullName: '',
     mobileNumber: '',
   });
-  const [options, setOptions] = useState<{reasons: ReasonCategory[] | string[], sources: string[]}>({
-    reasons: DEFAULT_REASONS,
-    sources: DEFAULT_SOURCES
-  });
+  const [options, setOptions] = useState<{reasons: ReasonCategory[] | string[], sources: string[]} | null>(null);
   const [saveStatus, setSaveStatus] = useState<'saving' | 'success' | 'error'>('saving');
   const hasSavedRef = useRef(false);
 
@@ -483,9 +480,9 @@ const SurveyApp = () => {
         {currentSlide === 1 && <VisitTypeSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} />}
         {currentSlide === 2 && <NameSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} />}
         {currentSlide === 3 && <MobileSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} />}
-        {currentSlide === 4 && <CategorySelectionSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} options={options.reasons as ReasonCategory[]} />}
-        {currentSlide === 11 && <ReasonSelectionSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} options={options.reasons as ReasonCategory[]} />}
-        {currentSlide === 5 && <SourceSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} options={options.sources} />}
+        {currentSlide === 4 && <CategorySelectionSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} options={options?.reasons as ReasonCategory[]} />}
+        {currentSlide === 11 && <ReasonSelectionSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} options={options?.reasons as ReasonCategory[]} />}
+        {currentSlide === 5 && <SourceSlide data={formData} updateData={updateData} onNext={handleNext} onPrev={handlePrev} options={options?.sources} />}
         {currentSlide === 7 && <ThankYouSlide data={formData} saveStatus={saveStatus} />}
       </div>
 

@@ -1,12 +1,17 @@
 import { MongoClient } from 'mongodb';
 
-const uri = "mongodb+srv://xscade_db_user:ydoxfNns9mOifLcM@survey.adnsnd7.mongodb.net/?appName=survey";
+// Use environment variable if available, otherwise fall back to hardcoded URI
+const uri = process.env.MONGODB_URI || "mongodb+srv://xscade_db_user:ydoxfNns9mOifLcM@survey.adnsnd7.mongodb.net/?appName=survey";
 
 if (!uri) {
-  throw new Error('Please add your Mongo URI to the code');
+  throw new Error('Please add your Mongo URI to the environment variables or code');
 }
 
-const options = {};
+const options: any = {
+  maxPoolSize: 10,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+};
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
